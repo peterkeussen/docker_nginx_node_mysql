@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:  
+  node:
+    build: 
+      context: ./node
+    image: peterkeussen/node:prod
+    container_name: node
+    # entrypoint: dockerize -wait tcp://mysql:3306 -timeout 8s docker-entrypoint.sh
+    restart: always
+    # volumes:
+    #   - ./node:/usr/src/app
+    networks:
+      - node-network
+    depends_on:
+      - mysql
+
+  mysql:
+    build: 
+      context: ./mysql
+    image: peterkeussen/mysql:prod
+    container_name: mysql
+    restart: always
+    tty: true
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - node-network
+
+  nginx:
+    build:
+      context: ./nginx
+    image: peterkeussen/nginx:prod
+    container_name: nginx
+    ports:
+      - "8080:80"
+    networks:
+      - node-network
+    depends_on:
+      - node
+          
+networks:
+  node-network:
+    driver: bridge
